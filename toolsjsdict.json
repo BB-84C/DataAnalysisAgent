@@ -1,0 +1,109 @@
+[
+    {
+        "type":"function",
+        "function":{
+            "name": "load_txt_from_idl",
+            "description": "To load a txt file from the given path and convert it into a numpy array.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "The path to load the txt file."
+                    },
+                    "filename": {
+                        "type": "string",
+                        "description": "The name of the txt file."
+                    }
+                },
+                "required": ["path", "filename"]
+        
+            }
+        }
+    },
+    {
+        "type":"function",
+        "function":{
+            "name": "polybackRow",
+            "description": "To subtract the background from an image using polynomial fitting.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "data_name": {
+                        "type": "string",
+                        "description": "Variable name of the image to subtract background."
+                    },
+                    "polyord": {
+                        "type": "string",
+                        "description": "The order of polynomial fitting. It should be an integer number in string type. eg: '2'"
+                    }
+                },
+                "required": ["data_name", "polyord"]
+        
+            }
+        }
+    },
+    {
+        "type":"function",
+        "function":{
+            "name": "fftamp",
+            "description": "Perform Fuorier Transform on provided image, and return the amplitude.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "string",
+                        "description": "The path to load the txt file."
+                    },
+                    "filename": {
+                        "type": "string",
+                        "description": "Variable name of the image to perform Fourier transform."
+                    }
+                },
+                "required": ["data"]
+        
+            }
+        }
+    },
+    {
+        "type":"function",
+        "function":{
+            "name": "plot_topo",
+            "description": "To plot a 2D numpy array as a topography image.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "topo": {
+                        "type": "string",
+                        "description": "The name of the 2D array to be plotted."
+                    }
+                },
+                "required": ["topo"]
+            }
+        }   
+    },
+    {
+        "type":"function",
+        "function":{
+            "name": "plot_fft",
+            "description": "To plot 2d numpy array as Fourier Transform image",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "data_name": {
+                        "type": "string",
+                        "description": "The name of the 2D array to be plotted."
+                    },
+                    "hist":{
+                        "type":"array",
+                        "description":"The histogram range to show.",
+                        "items": {
+                            "type":"string"
+                        } 
+                    }
+                },
+                "required": ["data_name","hist"]
+            }
+        }   
+    }
+]
