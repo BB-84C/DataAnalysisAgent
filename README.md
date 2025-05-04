@@ -1,2 +1,2 @@
-# GPTAutoSTM
- Use LLM to auto process STM data
+# NECINA Data Analysis Agent
+ Use LLM to auto-process scientific data
