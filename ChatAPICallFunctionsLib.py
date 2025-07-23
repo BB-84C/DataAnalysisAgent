@@ -15,6 +15,36 @@ import requests
 
 client = OpenAI(api_key = os.getenv("OPENAI_API_KEY"))
 
+         
+class GlobalNamespaceManager:
+    def __init__(self):
+        self.namespace = {'image_pool': []}
+        self.history = []
+
+    def add(self, key, value):
+        self.namespace[key] = value
+        if key not in self.history:
+            self.history.append(key)
+        
+        # Append to image_pool only if it's not already there
+        if isinstance(value, np.ndarray) and value.ndim == 2:
+            if key not in self.namespace['image_pool']:
+                self.namespace['image_pool'].append(key)
+
+    def get(self, key):
+        return self.namespace.get(key)
+
+    def get_all(self):
+        return self.namespace
+
+    def summary(self):
+        return {
+            "variables": list(self.namespace.keys()),
+            "image_pool": self.namespace['image_pool'],
+            "history": self.history
+        }
+
+
 
 def auto_tooljsdict(tools_list):
     """
@@ -107,7 +137,7 @@ def run_conversation1(messages, tools_list=None, toolsjsdict='', global_namespac
                 # Get function name
                 function_name = tool_call.function.name
                 # Get the function object
-                fuction_to_call = available_tools[function_name]
+                function_to_call = available_tools[function_name]
                 print('Excuted function: ['+function_name+'] with arguments: '+tool_call.function.arguments)
                 # Get the function parameters
                 function_args = json.loads(tool_call.function.arguments)
@@ -115,7 +145,69 @@ def run_conversation1(messages, tools_list=None, toolsjsdict='', global_namespac
                 # Use the provided global namespace or infer it
                 if global_namespace is None:
                     global_namespace = inspect.currentframe().f_back.f_globals
-                function_response = fuction_to_call(**function_args, global_namespace=global_namespace)
+                function_response = function_to_call(**function_args, global_namespace=global_namespace)
+                
+def run_conversation_x(messages, tools_list=None, toolsjsdict='', namespace_manager=None, model="gpt-4o"):
+    """
+    Chat model that automates external function calls. Just call chat model once and execute the function, no second call. 
+    :param messages: required parameter, dictionary type, pass to the messages parameter object of the Chat model
+    :param functions_list: optional parameter, defaults is None, can be set to a list object that contains all external functions
+    :param model: Chat model, optional parameter, default model is gpt-4
+    :return: output of the Chat model.
+    """
+    # If there is no external function library, the normal dialog task is executed
+    if tools_list == None:
+        response = client.chat.completions.create(
+                        model=model,
+                        messages=messages,
+                        )
+        response_message = response.choices[0].message
+        final_response = response_message.content
+        return response.choices[0].message.content
+        
+    # If an external function library exists, will select and answer with external functions
+    else:
+        if namespace_manager is None:
+            namespace_manager = GlobalNamespaceManager()
+        # Creating the functions object
+        # tools = tooljsdict
+        # Creating an External Library Dictionary
+        available_tools = {tool.__name__: tool for tool in tools_list}
+        # Pre-call state
+        before_keys = set(namespace_manager.namespace.keys())
+
+        # first response
+        response = client.chat.completions.create(
+                        model=model,
+                        messages=messages,
+                        tools=toolsjsdict,
+                        tool_choice="auto")
+
+        # Determine whether function_call is true for the returned result, i.e., determine whether an external function needs to be called to answer the question
+        tool_calls = response.choices[0].message.tool_calls
+        if tool_calls:
+            # Need to call an external function
+            for tool_call in tool_calls:
+                # Get function name
+                function_name = tool_call.function.name
+                # Get the function object
+                function_to_call = available_tools[function_name]
+                print('Excuted function: ['+function_name+'] with arguments: '+tool_call.function.arguments)
+                # Get the function parameters
+                function_args = json.loads(tool_call.function.arguments)
+                # Input the function parameters into the function to get the result of the function calculation
+                # Use the provided global namespace or infer it
+                # Execute the tool
+                function_to_call(**function_args, global_namespace=namespace_manager.namespace)
+                # Post-call: detect new variables
+                after_keys = set(namespace_manager.namespace.keys())
+                new_keys = after_keys - before_keys
+                for key in new_keys:
+                    namespace_manager.add(key, namespace_manager.namespace[key])
+
+        return namespace_manager.summary()
+
+
 
 def run_conversation2(messages, functions_list=None, model="gpt-4o"):
     """
