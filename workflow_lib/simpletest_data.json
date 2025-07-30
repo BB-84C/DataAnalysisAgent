@@ -1,0 +1,149 @@
+{
+    "nodes": [
+      { "Form id": "00000001", "Editor id": "MR_1", "description": "file names = '07_15_25_002.sxm'" },
+      { "Form id": "00000002", "Editor id": "MR_2", "description": "fig_07_15_25_002, 1x1 Figure" },
+      { "Form id": "00000003", "Editor id": "MR_3", "description": "fig_07_15_25_002_polyback2, 1x1 Figure" },
+      { "Form id": "00000004", "Editor id": "MR_4", "description": "fig_07_15_25_002_FT, 1x1 Figure" },
+      { "Form id": "00000005", "Editor id": "MR_5", "description": "fig_07_15_25_002_Linecut, 1x1 Figure" },
+  
+      { "Form id": "00000006", "Editor id": "OP_1", "description": "opensxm" },
+      { "Form id": "00000007", "Editor id": "OP_2", "description": "background subtraction along row" },
+      { "Form id": "00000008", "Editor id": "OP_3", "description": "fourier transform" },
+      { "Form id": "00000009", "Editor id": "OP_4", "description": "extract linecut" },
+  
+      { "Form id": "0000000A", "Editor id": "Param_1", "description": "pnum = 1" },
+      { "Form id": "0000000B", "Editor id": "Param_2", "description": "pnum = 2" },
+      { "Form id": "0000000C", "Editor id": "Param_3", "description": "pnum = 3" },
+      { "Form id": "0000000D", "Editor id": "Param_4", "description": "lincut param = [1,1,-1,176,246,176,211]" }
+    ],
+  
+    "runtimes": [
+      {
+        "Form id": "00001001",
+        "Editor id": "runtime_MR_1",
+        "type": null,
+        "condition": null,
+        "current_node": "MR_1",
+        "entry_edge": [],
+        "next_edge": [
+          { "from": "MR_1", "to": "OP_1", "label": "in", "order": 1 }
+        ],
+        "sub_runtimes": null
+      },
+      {
+        "Form id": "00001002",
+        "Editor id": "runtime_OP_1",
+        "type": null,
+        "condition": null,
+        "current_node": "OP_1",
+        "entry_edge": [
+          { "from": "MR_1", "to": "OP_1", "label": "in", "order": 1 },
+          { "from": "Param_1", "to": "OP_1", "label": "in", "order": 2 }
+        ],
+        "next_edge": [
+          { "from": "OP_1", "to": "MR_2", "label": "out", "order": 1 }
+        ],
+        "sub_runtimes": null
+      },
+      {
+        "Form id": "00001003",
+        "Editor id": "runtime_MR_2",
+        "type": null,
+        "condition": null,
+        "current_node": "MR_2",
+        "entry_edge": [
+          { "from": "OP_1", "to": "MR_2", "label": "out", "order": 1 }
+        ],
+        "next_edge": [
+          { "from": "MR_2", "to": "OP_2", "label": "in", "order": 1 }
+        ],
+        "sub_runtimes": null
+      },
+      {
+        "Form id": "00001004",
+        "Editor id": "runtime_OP_2",
+        "type": null,
+        "condition": null,
+        "current_node": "OP_2",
+        "entry_edge": [
+          { "from": "MR_2", "to": "OP_2", "label": "in", "order": 1 },
+          { "from": "Param_2", "to": "OP_2", "label": "in", "order": 2 }
+        ],
+        "next_edge": [
+          { "from": "OP_2", "to": "MR_3", "label": "out", "order": 1 }
+        ],
+        "sub_runtimes": null
+      },
+      {
+        "Form id": "00001005",
+        "Editor id": "runtime_MR_3",
+        "type": null,
+        "condition": null,
+        "current_node": "MR_3",
+        "entry_edge": [
+          { "from": "OP_2", "to": "MR_3", "label": "out", "order": 1 }
+        ],
+        "next_edge": [
+          { "from": "MR_3", "to": "OP_3", "label": "in", "order": 1 }
+        ],
+        "sub_runtimes": null
+      },
+      {
+        "Form id": "00001006",
+        "Editor id": "runtime_OP_3",
+        "type": null,
+        "condition": null,
+        "current_node": "OP_3",
+        "entry_edge": [
+          { "from": "MR_3", "to": "OP_3", "label": "in", "order": 1 },
+          { "from": "Param_3", "to": "OP_3", "label": "in", "order": 2 }
+        ],
+        "next_edge": [
+          { "from": "OP_3", "to": "MR_4", "label": "out", "order": 1 }
+        ],
+        "sub_runtimes": null
+      },
+      {
+        "Form id": "00001007",
+        "Editor id": "runtime_MR_4",
+        "type": null,
+        "condition": null,
+        "current_node": "MR_4",
+        "entry_edge": [
+          { "from": "OP_3", "to": "MR_4", "label": "out", "order": 1 }
+        ],
+        "next_edge": [
+          { "from": "MR_4", "to": "OP_4", "label": "in", "order": 1 }
+        ],
+        "sub_runtimes": null
+      },
+      {
+        "Form id": "00001008",
+        "Editor id": "runtime_OP_4",
+        "type": null,
+        "condition": null,
+        "current_node": "OP_4",
+        "entry_edge": [
+          { "from": "MR_4", "to": "OP_4", "label": "in", "order": 1 },
+          { "from": "Param_4", "to": "OP_4", "label": "in", "order": 2 }
+        ],
+        "next_edge": [
+          { "from": "OP_4", "to": "MR_5", "label": "out", "order": 1 }
+        ],
+        "sub_runtimes": null
+      },
+      {
+        "Form id": "00001009",
+        "Editor id": "runtime_MR_5",
+        "type": null,
+        "condition": null,
+        "current_node": "MR_5",
+        "entry_edge": [
+          { "from": "OP_4", "to": "MR_5", "label": "out", "order": 1 }
+        ],
+        "next_edge": [],
+        "sub_runtimes": null
+      }
+    ]
+  }
+  

@@ -1,0 +1,68 @@
+function opensxm(pnum)
+%% Prompt user with window to select file
+
+defaultpath = find_last_path;
+
+[fn, path,indx] = uigetfile({'*.sxm', 'SXM file (*.sxm)'}, ...
+                            "Select an SXM file",...
+                            defaultpath);
+
+% Add this file to path
+addpath(path)
+
+% Update log.txt so it opens here next time
+update_last_path(path);
+
+if isequal(fn,0)
+   disp('User selected Cancel')
+else
+   disp(['User selected ', fullfile(path, fn),... 
+         ' and filter index: ', num2str(indx)])
+end
+
+%% Load SXM
+[header, data] = loadsxm(fn);
+
+%Flip to match IDL
+% data = flip(data);
+
+% Conver to pA
+data = data * 10^3;
+
+disp(['Successfully loaded ' fn])
+
+%% Open Image
+switch pnum
+    % Open just forward topo
+    case 1
+        header.title = ['FWD ' header.data_info.Name{1}];
+        header.colorbarunits = 'pA';
+        createImage(fn, data(:, :, 1), header)
+    % Open all images
+    case 2
+        % Code to open all images
+        for i = 1:8
+            % If i even, need to print BKWD
+            if i/2 == ceil(i/2)
+                % Get BKWD correct header
+                header.title = ['BKWD ' header.data_info.Name{i/2}];
+                header.colorbarunits = 'pA';
+                createImage(fn, data(:, :, i), header)
+            elseif i/2 ~= ceil(i/2)
+                % Get FWD correct header
+                header.title = ['FWD ' header.data_info.Name{i-floor(i/2)}];
+                header.colorbarunits = 'pA';
+                createImage(fn, data(:, :, i), header)
+            end
+        end
+    % Open only FWD
+    case 3
+        for i = 1:2:8
+            header.title = ['FWD ' header.data_info.Name{i-floor(i/2)}];
+            header.colorbarunits = 'pA';
+            createImage(fn, data(:, :, i), header)
+        end
+end
+
+%Function End
+end

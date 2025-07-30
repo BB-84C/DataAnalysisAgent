@@ -27,3 +27,6 @@ with top_right:
 # Bottom area: workspace
 st.divider()
 render_workspace_ui()
+
+# Split workspace in half and the other half to be log: agent decided to parse xx to xx, current runtime, etc. 
+# token statistic

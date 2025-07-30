@@ -1,0 +1,39 @@
+function image_polybackrow(pnum)
+%% Documentation
+% =========================================================================
+% Title:    image_polybackrow.m
+% 
+% Purpose:  This code creates a polynomial fit to the rows of an image 
+%           and then subtracts this background fit out to emphasize the 
+%           foreground.
+%           
+% Inputs:   pnum - degree order polynomial fit
+%
+% Author:   Christopher Candelora
+% 
+% Date:     June 9, 2023
+% =========================================================================
+%% Get image information
+cfig = gcf;
+curr_data = getimage(cfig);
+
+sz = size(curr_data);
+xsize = sz(2);
+ysize = sz(1);
+
+new_data = zeros(ysize, xsize);
+x = 1:xsize;
+for i = 1:ysize
+    y = curr_data(i, :);
+    pFit = polyfit(x, y, pnum);
+    pFity = polyval(pFit, x);
+    new_data(i, :) = y - pFity;
+end
+
+%% Print new data
+
+cfig.HeaderInfo.title = [cfig.HeaderInfo.filename ' polyback row'];
+
+printImage(cfig, gca, new_data);
+
+end %image_polybackrow.m

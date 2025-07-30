@@ -1,0 +1,97 @@
+function image_Fourier_Transform(pnum)
+%% Documentation
+% =========================================================================
+% Title:    Fourier_Transform.m
+%
+% Purpose:  This function allows the user to take a Fourier Transform of
+%           an image and plots the result in an image.
+%
+% Input Variables: 
+%           pnum
+%               1 = real
+%               2 = imaginary
+%               3 = amplitude
+%               4 = phase
+%
+% Author:   Christopher Candelora
+%
+% Date:     February 13, 2023
+%
+% MOD 06-16-23 CSC - Added phase.
+% =========================================================================
+%% Get image info
+
+
+% Get file name
+cfig = gcf;
+Z = getimage(cfig);
+
+xsize = size(Z, 1);
+ysize = size(Z, 2);
+
+%% Initialize variables
+
+rms = 0;
+tot = 0;
+
+for i = 1:xsize
+    for j = 1:ysize
+        rms = rms + Z(j, i) ^2;
+        tot = tot + abs(Z(i, j));
+    end
+end
+
+rms = sqrt(rms/xsize/ysize);
+tot = tot/(xsize*ysize);
+
+disp(['RMS ' num2str(rms)]);
+disp(['Abs mean ' num2str(tot)]);
+
+%% Case statements for different windows. For no window we do
+
+mask = ones(xsize, ysize);
+maskavg = sqrt(mean(mask*mask));
+mask = mask / maskavg;
+
+sz = [xsize, ysize];
+
+%% Do the FT
+
+complexFFT = fft2(Z .* mask);
+FFTMat = fftshift(complexFFT);
+% Normalize since MATLAB doesn't naturally do but IDL does
+FFTMat = FFTMat / (xsize*ysize);
+% Flip to match IDL
+FFTMat = flip(FFTMat, 1);
+FFTMat = flip(FFTMat, 2);
+
+switch pnum
+    case 1
+        OutData = real(FFTMat);
+        cfig.HeaderInfo.title = 'FT Real';
+    case 2
+        OutData = imag(FFTMat);
+        cfig.HeaderInfo.title = 'FT Imaginary';
+    case 3
+        OutData = abs(FFTMat);
+        cfig.HeaderInfo.title = 'Absolute';
+    case 4
+        OutData = atan(imag(FFTMat) ./ real(FFTMat));
+        cfig.HeaderInfo.title = 'Phase';
+        cfig.HeaderInfo.colorbarunits = '\pi';
+end
+
+% Get standard dev average for dataset
+stdiv = mean(std(OutData));
+
+% Do better job at setting image bounds
+Bound = [OutData(1) (mean(OutData, "all") + 25*stdiv)];
+
+createImage(cfig.HeaderInfo.filename, OutData, cfig.HeaderInfo);
+clim(Bound);
+
+
+
+
+
+end % image_Fourier_Transform 

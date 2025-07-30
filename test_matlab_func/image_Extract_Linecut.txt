@@ -1,0 +1,232 @@
+function image_Extract_Linecut()
+%% Documentation
+% =========================================================================
+% Title:    image_Extract_Linecut.m
+%
+% Purpose:  This function allows the user to take a linecut of some data
+%           and outputs a 2D plot of the linecut. This code follows the IDL
+%           code almost exactly, however I believe the difference in
+%           interpolation is what yields different results.
+%
+% Author:   Christopher Candelora
+%
+% Date:     June 7, 2024
+% =========================================================================
+
+%% Get current figure
+curfig = gcf;
+
+movegui(curfig, 'northwest')
+
+%% Create figure and move
+util = uifigure('Name', '2D Linecut', 'Position', [0 0 675 450]);
+movegui(util, 'northeast')
+
+%Format pannels
+pplot   = uipanel(util, 'Position', [25 25 400 400]);
+pinput  = uipanel(util, 'Position', [450 25 200 400]);
+ax      = uiaxes(pplot, 'Position', [10 10 380 380]);
+
+%Create buttons
+plotbtn     = uibutton(pinput, 'Text', 'Plot', 'Position', [25 25 50 20], "ButtonPushedFcn", @interpolate_lc);
+finishbtn   = uibutton(pinput, 'Text', 'Export', "Position", [125 25 50 20], "ButtonPushedFcn", @exportfun);
+clearbtn    = uibutton(pinput, 'Text', 'Clear', 'Position', [50 60 100 20], "ButtonPushedFcn", @clearfun);
+
+%Create labels
+uilabel(pinput, 'Text', 'End Y:', 'Position', [25 100 75 25]);
+uilabel(pinput, 'Text', 'Start Y:', 'Position', [25 130 75 25]);
+uilabel(pinput, 'Text', 'End X:', 'Position', [25 160 75 25]);
+uilabel(pinput, 'Text', 'Start X:', 'Position', [25 190 75 25]);
+uilabel(pinput, 'Text', 'Num spectra:', 'Position', [25 220 75 25]);
+uilabel(pinput, 'Text', 'Avg traverse spectra:', 'Position', [25 250 75 50], 'WordWrap', 'on');
+uilabel(pinput, 'Text', 'Avg successive spectra:', 'Position', [25 305 75 50], 'WordWrap', 'on');
+
+%Create edit fields
+savgf   = uieditfield(pinput, 'numeric', 'Position', [105 320 75 25]);
+tavgf   = uieditfield(pinput, 'numeric', 'Position', [105 265 75 25]);
+Nf      = uieditfield(pinput, 'numeric', 'Position', [105 220 75 25]);
+startx  = uieditfield(pinput, 'numeric', 'Position', [105 190 75 25]);
+endx    = uieditfield(pinput, 'numeric', 'Position', [105 160 75 25]);
+starty  = uieditfield(pinput, 'numeric', 'Position', [105 130 75 25]);
+endy    = uieditfield(pinput, 'numeric', 'Position', [105 100 75 25]);
+
+%Set default values
+clearfun;
+
+roi = drawline;
+
+%% Begin interpolation/ Linecut
+    function interpolate_lc(~, ~)
+
+        % =================================
+        % Begin Interpolation Initalization
+        % =================================
+
+        % Get inputs
+        [x, y, img, N, avgT, avgL, method, pCoordinates, getn] = get_inputs;
+
+        startcen    = [pCoordinates(1,1), pCoordinates(1,2)];
+        endcen      = [pCoordinates(2, 1), pCoordinates(2,2)];
+
+        angle = calc_angle(startcen, endcen);
+
+        deltaX = sind(angle);
+        deltaY = cosd(angle);
+
+        if angle >= 90
+            deltaUP = [deltaX, -deltaY];
+        else
+            deltaUP = [-deltaX, deltaY];
+        end
+
+        disp(['deltaUP = ' num2str(deltaUP)])
+
+        % Find the start and end points of the top line
+        starttop = startcen + (avgT-1)/2 * deltaUP;
+        endtop   = endcen + (avgT-1)/2 * deltaUP;
+        
+        % Determine number of points to extract
+        linelength = sqrt(sum((endcen-startcen).^2));
+
+        if isempty(N) || N <=0
+            N = round(linelength) + 1; % make resolution slightly better than one pixel
+        end
+
+        for i = 0:avgT-1
+            startpos = starttop - i * deltaUP;
+            endpos   = endtop - i * deltaUP;
+            alldata(:, i+1) = ExtractSingleLinecut(startpos, endpos, N, img);
+        end
+
+        % Averaging code
+        % First, do all successive averaging
+        for i = 1:avgT
+            savg(:, i) = movmean(alldata(:, i), avgL);
+        end
+
+        % Now, average these 3 lines
+        avgdata = mean(savg, 2);
+
+
+%         % Averaging code
+%         for j = 1:N
+%             avg = 0;
+%             num = 0;
+%             for k = 1:avgT
+%                 temp = movmean(alldata(:, k), avgL);
+%                 avg = avg + temp(j);
+%             end
+%             avgdata(j) = avg / avgT;
+%         end
+
+        %% ExtractSingleLinecut function
+        function [lncut] = ExtractSingleLinecut(stps, edps, N, img)
+            len = sqrt(sum((edps-stps).^2));
+            
+            % Determine number of points to extract
+            if N == -1
+                N = round(len) + 2;
+            end
+
+            step = (edps - stps) ./ (N-1); %Total distance traveling
+            ramp = ((0:N-1).'*step);
+
+            % Calculate data points
+            lncut = interp2(img, ramp(:,1)+stps(1), ramp(:, 2)+stps(2), 'linear');
+        end
+       
+
+        %% Plot linecut
+        plot(ax, avgdata,'b');
+%         xlim(ax, [min(sqrt((meanxg-meanxg(1)).^2+(meanyg-meanyg(1)).^2)) max(sqrt((meanxg-meanxg(1)).^2+(meanyg-meanyg(1)).^2))]);
+%         ylim(ax, [min(meanzg) max(meanzg)]);
+        
+        function [x, y, img, N, tavg, savg, method, pCoordinates, getn] = get_inputs
+
+                % Set defaults
+                method = 'linear';
+
+                % Configure N
+                if Nf.Value == -1
+                    getn = true;
+                    N = [];
+                else
+                    getn = false;
+                    N = Nf.Value;
+                end
+
+                % Get transverse and successive averaging
+                tavg = tavgf.Value;
+                savg = savgf.Value;
+                
+                % Get image dimensions
+                [x, y, img] = getimage;
+        
+                % Only get points from line if start x start y at defaults
+                if endy.Value == 0 && endx.Value == 0 && startx.Value == 0 && starty.Value == 0
+                    pCoordinates    = roi.Position; 
+
+                    % Show values in window
+                    startx.Value    = pCoordinates(1, 1);
+                    starty.Value    = pCoordinates(1, 2);
+                    endx.Value      = pCoordinates(2, 1);
+                    endy.Value      = pCoordinates(2, 2);
+                % If defaults not shown (not all are zero), then take
+                % fields
+                else
+                    pCoordinates = [startx.Value starty.Value; endx.Value endy.Value];
+                    %Move line also
+                    roi.Position = pCoordinates;
+                end
+                   
+            end%end get_inputs
+
+        function [ang] = calc_angle(startcen, endcen)
+        % Calculates angle between line and x axis.
+        if startcen(1) == endcen(1)
+            ang = 90;
+        elseif startcen(2) == endcen(2)
+            ang = 0;
+        else
+            diff = endcen - startcen;
+            ang = atan(diff(2) / diff(1));
+            if ang < 0
+                ang = ang + pi;
+            end
+            ang = rad2deg(ang);
+        end
+        disp(['Angle is ' num2str(ang)])
+            
+        end %calc_angle
+        
+    end %interpolate_lc
+
+    function exportfun(~, ~)
+        PannelObjs = ax.Parent;
+        axObjs = PannelObjs.Children;
+        dataObjs = axObjs.Children;
+        
+        figure('Name', 'Final linecut');
+        plot(dataObjs.XData, dataObjs.YData, 'b');
+        xlim([min(dataObjs.XData) max(dataObjs.XData)])
+
+        
+        delete(roi)
+        close(util)
+
+    end%finishfun
+
+    function clearfun(~, ~)
+        % Clears all edit fields 
+        Nf.Value         = -1;
+        tavgf.Value      = 1;
+        savgf.Value      = 1;
+        startx.Value    = 0;
+        starty.Value    = 0;
+        endx.Value      = 0;
+        endy.Value      = 0;
+
+    end%clearfun
+
+
+end%linecut_2D_averaging
