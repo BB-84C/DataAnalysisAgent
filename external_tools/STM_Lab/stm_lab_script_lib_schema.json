@@ -1,0 +1,89 @@
+[
+    {
+        "type": "function",
+        "function": {
+          "name": "image_polybackrow",
+          "description": "Activate a MATLAB figure by handle name and apply row-wise polynomial background subtraction via the MATLAB script `image_polybackrow`.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "figure_name": {
+                "type": "string",
+                "description": "Variable name of the figure handle in the MATLAB workspace to activate."
+              },
+              "pnum": {
+                "type": "string",
+                "description": "Polynomial degree for background subtraction. Allowed values: '1', '2', '3'.",
+                "enum": ["1", "2", "3"]
+              }
+            },
+            "required": ["figure_name", "pnum"]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "opensxm_auto",
+          "description": "Load an SXM file from the given directory and delegate handling to MATLAB (initializes its own figure, no prior activation needed).",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Directory path containing the SXM file."
+              },
+              "fn": {
+                "type": "string",
+                "description": "File name of the SXM to load (including extension)."
+              },
+              "pnum": {
+                "type": "string",
+                "description": "Load mode selector: '1' = single forward topography, '2' = load all images, '3' = forward-only images. Default '1'.",
+                "enum": ["1", "2", "3"]
+              }
+            },
+            "required": ["path", "fn"]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "image_Fourier_Transform",
+          "description": "Activate a MATLAB figure by handle name and perform Fourier transform via the MATLAB script `image_Fourier_Transform`.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "figure_name": {
+                "type": "string",
+                "description": "Variable name of the target figure handle in MATLAB workspace."
+              },
+              "pnum": {
+                "type": "string",
+                "description": "Fourier transform mode: '1' = real, '2' = imag, '3' = amplitude, '4' = phase. Default '3'.",
+                "enum": ["1", "2", "3", "4"]
+              }
+            },
+            "required": ["figure_name"]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "image_Extract_Linecut",
+          "description": "Activate a MATLAB figure by handle name and extract linecuts via the MATLAB script `image_Extract_Linecut`.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "figure_name": {
+                "type": "string",
+                "description": "Variable name of the target figure handle in MATLAB workspace."
+              }
+            },
+            "required": ["figure_name"]
+          }
+        }
+      }
+]

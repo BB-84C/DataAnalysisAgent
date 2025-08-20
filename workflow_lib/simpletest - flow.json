@@ -1,0 +1,11 @@
+{
+  "flows": [
+    {
+      "FormID": "00010000",
+      "EditorID": "simpletest_flow",
+      "description": "Simple SXM to linecut pipeline for framework validation",
+      "entry_runtimes": ["runtime_MR_1"],
+      "exit_runtimes": ["runtime_MR_5"]
+    }
+  ]
+}

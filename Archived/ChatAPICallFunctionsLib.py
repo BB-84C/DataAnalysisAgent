@@ -98,7 +98,7 @@ def auto_tooljsdict(tools_list):
                 print("Running again....")
     return tools_jsdict
 
-def run_conversation1(messages, tools_list=None, toolsjsdict='', global_namespace=None, model="gpt-4o"):
+def run_conversation1(messages, tools_list=None, toolsschema='', model="gpt-4o"):
     """
     Chat model that automates external function calls. Just call chat model once and execute the function, no second call. 
     :param messages: required parameter, dictionary type, pass to the messages parameter object of the Chat model
@@ -118,7 +118,6 @@ def run_conversation1(messages, tools_list=None, toolsjsdict='', global_namespac
     # If an external function library exists, will select and answer with external functions
     else:
         # Creating the functions object
-        # tools = tooljsdict
         # Creating an External Library Dictionary
         available_tools = {tool.__name__: tool for tool in tools_list}
 
@@ -126,7 +125,7 @@ def run_conversation1(messages, tools_list=None, toolsjsdict='', global_namespac
         response = client.chat.completions.create(
                         model=model,
                         messages=messages,
-                        tools=toolsjsdict,
+                        tools=toolsschema,
                         tool_choice="auto")
 
         # Determine whether function_call is true for the returned result, i.e., determine whether an external function needs to be called to answer the question
@@ -142,10 +141,7 @@ def run_conversation1(messages, tools_list=None, toolsjsdict='', global_namespac
                 # Get the function parameters
                 function_args = json.loads(tool_call.function.arguments)
                 # Input the function parameters into the function to get the result of the function calculation
-                # Use the provided global namespace or infer it
-                if global_namespace is None:
-                    global_namespace = inspect.currentframe().f_back.f_globals
-                function_response = function_to_call(**function_args, global_namespace=global_namespace)
+                function_response = function_to_call(**function_args)
                 
 def run_conversation_x(messages, tools_list=None, toolsjsdict='', namespace_manager=None, model="gpt-4o"):
     """
