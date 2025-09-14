@@ -80,9 +80,13 @@
               "figure_name": {
                 "type": "string",
                 "description": "Variable name of the target figure handle in MATLAB workspace."
+              },
+              "linecut_param":{
+                "type": "string",
+                "description": "The parameters to extract linecut, including the start/end coordinates, average setting, etc. It should be an 1D array of 7 elements, like: [1,1,-1,0,0,0,0] "
               }
             },
-            "required": ["figure_name"]
+            "required": ["figure_name","linecut_param"]
           }
         }
       }

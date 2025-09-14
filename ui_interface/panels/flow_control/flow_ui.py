@@ -1,8 +1,10 @@
 # ui_interface/panels/flow_control/flow_ui.py
 
 import streamlit as st
+import sys
 import os
 import streamlit.components.v1 as components
+from pathlib import Path
 
 def render_flow_ui():
     st.subheader("Flow Control")
@@ -14,3 +16,28 @@ def render_flow_ui():
 
     # Render the flow editor layout
     components.html(html_content, height=600, scrolling=False)
+    
+    # --- Run Button ---
+    st.divider()
+    if st.button("Run", type="primary"):
+        settings = st.session_state.get("settings", {}) or {}
+        tool_py = settings.get("tool_py", r"D:\GPTAutoSTM\external_tools\STM_Lab\stm_lab_scripts_lib.py")
+        tool_schema = settings.get("tool_schema", r"D:\GPTAutoSTM\external_tools\STM_Lab\stm_lab_script_lib_schema.json")
+
+        data_path = r"D:\GPTAutoSTM\workflow_lib\simpletest - data.json"
+        flow_path = r"D:\GPTAutoSTM\workflow_lib\simpletest - flow.json"
+        
+        project_root = Path(__file__).resolve().parents[2]
+        if str(project_root) not in sys.path:
+            sys.path.insert(0, str(project_root))
+
+        from executioner.main import execution_manager
+
+        executor = execution_manager.ExecutionManager(
+            os.path.normpath(data_path),
+            os.path.normpath(flow_path),
+            os.path.normpath(tool_py),
+            os.path.normpath(tool_schema)
+        )
+        executor.run()
+        st.success("Execution Running.")

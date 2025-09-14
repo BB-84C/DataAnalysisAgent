@@ -1,4 +1,7 @@
 from executioner import call_matlab_meta
+from namespace_mngr.namespace_manager import get_nmManager
+nm = get_nmManager()
+eng = nm.eng
 
 def opensxm_auto(path, fn, pnum="1"):
     """
@@ -24,7 +27,7 @@ def opensxm_auto(path, fn, pnum="1"):
     return call_matlab_meta({
         "script": "opensxm_auto",
         "params": [{"path": path},{"filename": fn},{"pnum": pnum}],
-        "outputs": ["sxm_data"]
+        "outputs": []
     })
 
 
@@ -51,10 +54,17 @@ def image_polybackrow(figure_name, pnum="2"):
     })
 
     # Step 2: Execute the original MATLAB script
-    return call_matlab_meta({
+    call_matlab_meta({
         "script": "image_polybackrow",
         "params": {"pnum": pnum},
-        "outputs": ["polyback_result"]
+        "outputs": []
+    })
+    
+    # Step 3 change figure handle var name
+    call_matlab_meta({
+        "script": "mod_fig_handle_var_name",
+        "params": [{"prev_figure_handle_var": figure_name},{"new_figure_handle_var":figure_name+"_polyback_"+pnum}],
+        "outputs": []
     })
 
 
@@ -81,14 +91,14 @@ def image_Fourier_Transform(figure_name, pnum="3"):
     })
 
     # Step 2: Execute the original MATLAB script
-    return call_matlab_meta({
+    call_matlab_meta({
         "script": "image_Fourier_Transform",
         "params": {"pnum": pnum},
-        "outputs": ["fft_result"]
+        "outputs": []
     })
 
 
-def image_Extract_Linecut(figure_name):
+def image_Extract_Linecut(figure_name, linecut_param):
     """
     Wrapper for MATLAB script 'image_Extract_Linecut'.
 
@@ -97,6 +107,7 @@ def image_Extract_Linecut(figure_name):
 
     Parameters:
         figure_name (str): The variable name of the figure handle in MATLAB workspace.
+        linecut_param (str): The parameters to extract linecut, including the start/end coordinates, average setting, etc. 
 
     Returns:
         Result variable name or status (handled by MATLAB side).
@@ -109,9 +120,18 @@ def image_Extract_Linecut(figure_name):
     })
 
     # Step 2: Execute the original MATLAB script
-    return call_matlab_meta({
+    call_matlab_meta({
         "script": "image_Extract_Linecut",
         "params": {},
-        "outputs": ["linecut_result"]
+        "outputs": []
     })
+    
+    # Step 3: Setup the parameters in the 2D linecut menu.
+    call_matlab_meta({
+        "script": "input_2D_Linecut_menu",
+        "params": {"linecut_param": linecut_param},
+        "outputs": []
+    })
+    
+    
 

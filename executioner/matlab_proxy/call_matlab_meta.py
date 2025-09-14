@@ -1,6 +1,7 @@
 import json
 import matlab.engine
 import numpy as np
+import ast
 from namespace_mngr.namespace_manager import get_nmManager
 
 nm = get_nmManager()
@@ -36,20 +37,32 @@ def call_matlab_meta(meta):
     
     for pair in params_list:
         for key, val in pair.items():
+            # if isinstance(val, str): # Attempts to recognize strings of pure numbers (converted to numeric) 
+            #     if val.isdigit(): 
+            #         args.append(val) # Without quotation marks 
+            #     else: args.append(f"'{val}'") # Ordinary strings in quotes 
+            # else: 
+            #     args.append(str(val)) # Other non-string types (e.g. int, float)
+                
+
             if isinstance(val, str):
-                # Attempts to recognize strings of pure numbers (converted to numeric)
-                if val.isdigit():
-                    args.append(val)  # Without quotation marks
-                else:
-                    args.append(f"'{val}'")  # Ordinary strings in quotes
+                try:
+                    parsed_val = ast.literal_eval(val)
+                
+                    # Attempts to recognize strings of pure numbers (converted to numeric)
+                    if isinstance(parsed_val,(int, float, list, tuple)):
+                        args.append(val)  # Without quotation marks
+                    else:
+                        args.append(f"'{val}'")  # Ordinary strings in quotes
+                except Exception:
+                    args.append(f"'{val}'")
             else:
                 args.append(str(val))  # Other non-string types (e.g. int, float)
     args_str = ", ".join(args)
-
+    nm.log_script_call(script_name,params)
     # Execute MATLAB script with arguments
     if args_str:
         eng.eval(f"{script_name}({args_str});", nargout=0)
     else:
         eng.eval(f"{script_name}();", nargout=0)
-    nm.log_script_call(script_name,params)
     return {"status": "executed", "script": script_name}

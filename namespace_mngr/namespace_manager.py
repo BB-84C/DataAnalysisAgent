@@ -3,6 +3,7 @@
 import matlab.engine
 import numpy as np
 import threading
+import time
 
 class NamespaceManager:
     def __init__(self):
@@ -14,6 +15,11 @@ class NamespaceManager:
         self.execution_log = []
         self.runtime_logs = {}
         self._connect_matlab()
+        
+        # Token Ledger
+        self.runtime_token_usages = {}
+        self.total_token_usages = []
+        self._tok_lock = threading.Lock()
         
     def _connect_matlab(self):
         """Connect to existing MATLAB session."""
@@ -38,7 +44,7 @@ class NamespaceManager:
             try:
                 var_class = self.eng.eval(f"class({name})", nargout=1)
                 var_size = self.eng.eval(f"size({name})", nargout=1)  # 返回 matlab.double
-                print(f"[DEBUG] var_size for {name}:", var_size, type(var_size))
+                # print(f"[NamespaceManager] var_size for {name}:", var_size, type(var_size))
                 # # 将 size 转换成字符串 "MxN"
                 # raw_list = var_size.tolist()
                 # 存入 snapshot 字典
@@ -50,6 +56,7 @@ class NamespaceManager:
                 print(f"[NamespaceManager] Warning: Failed to get info for {name}: {e}")
                 
         self.current_snapshot = snapshot
+        print(f"[NamespaceManager] Current Workspace: {self.current_snapshot}")
         return snapshot
 
 
@@ -63,8 +70,10 @@ class NamespaceManager:
         self.runtime_snapshots[runtime_EDID] = {
             "start": start_snapshot,
             "end": None
-            
         }
+        if runtime_EDID not in self.runtime_token_usages:
+            self.runtime_token_usages[runtime_EDID] = []
+            
         print(f"[NamespaceManager] Runtime '{runtime_EDID}' started. Snapshot recorded with {len(start_snapshot)} variables.")
         
 
@@ -114,7 +123,7 @@ class NamespaceManager:
                 diff[var_name] = {
                     "class": info["class"],
                     "size": info["size"],
-                    "status": "added" if var_name not in start_snapshot else "modded"
+                    "status": "added"
                     }
             else:
                 # 检查是否有修改（class 或 size）
@@ -123,13 +132,21 @@ class NamespaceManager:
                     diff[var_name] = {
                     "class": info["class"],
                     "size": info["size"],
-                    "status": "added" if var_name not in start_snapshot else "modded"
+                    "status": "modded"
                     }
+        for var_name, info in start_snapshot.items():
+            if var_name not in end_snapshot:
+                diff[var_name] = {
+                    "class": info["class"],
+                    "size": info["size"],
+                    "status": "deleted"
+                }
 
         # 4. 保存结束快照和输出
         self.runtime_snapshots[runtime_EDID]["end"] = end_snapshot
         self.runtime_outputs[runtime_EDID] = diff
-
+        
+        
         print(f"[NamespaceManager] Runtime '{runtime_EDID}' ended. {len(diff)} new/modified variables detected.")
         runtime_log = self.runtime_logs.get(runtime_EDID,[])   
         return {"diff": diff, "log": runtime_log}
@@ -173,6 +190,70 @@ class NamespaceManager:
             return "running"
 
         return "unknown"
+
+        # --- NEW: token accounting API ---
+
+    def log_llm_tokens(self,
+                       runtime_EDID: str | None,
+                       source: str,
+                       model: str,
+                       prompt_tokens: int | None,
+                       completion_tokens: int | None,
+                       total_tokens: int | None):
+        """
+        Append a token-usage event.
+        - runtime_EDID: EDID of the current runtime; if None, it will be credited to the bottom bucket "__unknown_runtime__".
+        - source: "argument_caller" / "tool_caller" / others
+        - model: the name of the actual model used
+        - *_tokens: null; pass None if you can't get usage (will be credited with 0)
+        """
+        
+        if not runtime_EDID:
+            runtime_EDID = "__unknown_runtime__"
+
+        evt = {
+            "source": source,
+            "model": model,
+            "prompt": int(prompt_tokens or 0),
+            "completion": int(completion_tokens or 0),
+            "total": int(total_tokens or 0),
+            "ts": time.time()
+        }
+
+        with self._tok_lock:
+            if runtime_EDID not in self.runtime_token_usages:
+                self.runtime_token_usages[runtime_EDID] = []
+            self.runtime_token_usages[runtime_EDID].append(evt)
+            self.total_token_usages.append(evt)
+            
+    def get_runtime_token_summary(self, runtime_EDID: str) -> dict:
+        """
+        Return summed tokens for a given runtime.
+        {
+            "prompt": int, "completion": int, "total": int, "events": int
+        }
+        """
+        with self._tok_lock:
+            events = self.runtime_token_usages.get(runtime_EDID, [])
+            prompt = sum(e["prompt"] for e in events)
+            completion = sum(e["completion"] for e in events)
+            total = sum(e["total"] for e in events)
+            return {"Runtime": runtime_EDID, "prompt": prompt, "completion": completion, "total": total, "events": len(events)}
+
+    def get_total_token_summary(self) -> dict:
+        """
+        Return summed tokens since last reset/begin_run (whole run/session).
+        {
+          "prompt": int, "completion": int, "total": int, "events": int
+        }
+        """
+        with self._tok_lock:
+            prompt = sum(e["prompt"] for e in self.total_token_usages)
+            completion = sum(e["completion"] for e in self.total_token_usages)
+            total = sum(e["total"] for e in self.total_token_usages)
+            return {"prompt": prompt, "completion": completion, "total": total, "events": len(self.total_token_usages)}
+
+
     
     
 _MGR = None

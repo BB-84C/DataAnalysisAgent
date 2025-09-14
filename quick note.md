@@ -1,2 +1,5 @@
 - Deadlock detection and branch selection
 - token count for argument_caller and tool_caller
+- listen to the script output
+- count hard code time vs api time. 
+- flow control prompt, how to use. 

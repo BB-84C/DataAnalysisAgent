@@ -2,6 +2,7 @@ import streamlit as st
 from ui_interface.panels.flow_control.flow_ui import render_flow_ui
 from ui_interface.panels.chat_ui import render_chat_ui
 from ui_interface.panels.workspace_ui import render_workspace_ui
+from ui_interface.panels.settings_ui import render_settings_ui 
 
 # # Initial/default height of flow panel
 # if "flow_panel_height" not in st.session_state:
@@ -18,6 +19,8 @@ with top_left:
 
 with top_right:
     render_chat_ui()
+    st.divider()
+    render_settings_ui()
 
 # st.markdown("---")
 # st.markdown("Adjust Flow Panel Height")
