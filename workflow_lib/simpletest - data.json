@@ -1,6 +1,6 @@
 {
     "nodes": [
-      { "FormID": "00000001", "EditorID": "MR_1", "description": "file names = '07_15_25_002.sxm',path = 'F:/Dropbox/STM_data/Unisoku/2025-07-13'" },
+      { "FormID": "00000001", "EditorID": "MR_1", "description": "file names = '07_15_25_002.sxm',path = '/Users/bb84/Dropbox/STM_data/Unisoku/2025-07-13'" },
       { "FormID": "00000002", "EditorID": "MR_2", "description": "fig_07_15_25_002, 1x1 Figure" },
       { "FormID": "00000003", "EditorID": "MR_3", "description": "fig_07_15_25_002_polyback2, 1x1 Figure" },
       { "FormID": "00000004", "EditorID": "MR_4", "description": "fig_07_15_25_002_FT, 1x1 Figure" },
@@ -14,7 +14,7 @@
       { "FormID": "0000000A", "EditorID": "Param_1", "description": "pnum = 1" },
       { "FormID": "0000000B", "EditorID": "Param_2", "description": "pnum = 2" },
       { "FormID": "0000000C", "EditorID": "Param_3", "description": "pnum = 3" },
-      { "FormID": "0000000D", "EditorID": "Param_4", "description": "lincut param = [1,1,-1,176,246,176,211]" }
+      { "FormID": "0000000D", "EditorID": "Param_4", "description": "lincut param = [1,1,-1,224.5,234.8,48.03,296.7]" }
     ],
   
     "runtimes": [

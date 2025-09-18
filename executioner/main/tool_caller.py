@@ -4,6 +4,9 @@ from typing import Optional, Dict, List
 from namespace_mngr.namespace_manager import get_nmManager
 from openai import OpenAI
 import streamlit as st
+from ui_interface.ns_log_bus import get_ns_logger
+ns_log = get_ns_logger()
+
 
 # client = OpenAI(api_key = os.getenv("OPENAI_API_KEY"))
 
@@ -72,9 +75,6 @@ def tool_caller(
     - Returns a unified dictionary, does not execute the tool, does not write back to the namespace
     """
     messages = _build_tool_prompt(OP_Description, input_data, input_MR_Description)
-    tool_called = False
-    tool_name = None
-    call_args = None
     client = get_client()
 
     # There are tools available to allow LLM to automatically pick
@@ -102,8 +102,22 @@ def tool_caller(
         pass
     
     tool_calls = response.choices[0].message.tool_calls or []
+    tc = tool_calls[0]
+    tool_name = tc.function.name
+    args_str  = _compact_json(tc.function.arguments)
+
+    # 这里打日志
+    ns_log.info(f"LLM decided to call function: {tool_name} with argument: {args_str} at node: {runtime_EDID}\n")
+
     return tool_calls
 
+def _compact_json(s: str) -> str:
+    try:
+        # OpenAI 返回的 arguments 是 JSON 字符串；转成最紧凑可读的形式
+        return json.dumps(json.loads(s), ensure_ascii=False, separators=(",", ":"))
+    except Exception:
+        # 如果解析失败，就原样输出，避免因日志报错中断主流程
+        return s
 
 def _build_tool_prompt(OP_Description, input_data, input_MR_Description):
     

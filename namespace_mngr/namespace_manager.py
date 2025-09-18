@@ -4,6 +4,8 @@ import matlab.engine
 import numpy as np
 import threading
 import time
+import logging
+from ui_interface.ns_log_bus import get_ns_logger 
 
 class NamespaceManager:
     def __init__(self):
@@ -15,6 +17,9 @@ class NamespaceManager:
         self.execution_log = []
         self.runtime_logs = {}
         self._connect_matlab()
+        self.log = get_ns_logger()
+        self.log.debug("NSM smoke test: logger ready.")
+        # self.log.setLevel(logging.DEBUG)
         
         # Token Ledger
         self.runtime_token_usages = {}
@@ -98,6 +103,8 @@ class NamespaceManager:
             self.runtime_logs[runtime_EDID].append(log_entry)
 
         print(f"[NamespaceManager] Recorded script call: {script_name} with params {params}")
+        # self.log.info(f"[NamespaceManager] Recorded script call: {script_name} with params {params}")
+
 
 
     def end_runtime(self, runtime_EDID):
