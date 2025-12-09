@@ -179,15 +179,24 @@
 </head>
 
 <body>
-  <div class="container">
+    <div class="container">
     <div class="left">
       <h4>Flow Editor</h4>
       <textarea id="mermaid-input">
-// Minimal example
 flowchart TD
-    A[Start] --> B{Is it working?}
-    B -- Yes --> C[Great!]
-    B -- No --> D[Fix it]</textarea>
+    MR_1@{ label: "file names = '07_15_25_002.sxm'" } -- in_1 --> OP_1["opensxm"]
+    Param_1("pnum = 1") -- in_2 --> OP_1
+    OP_1 -- out --> MR_2[("fig_07_15_25_002, 1x1 Figure")]
+    MR_2 -- in_2 --> OP_2["background subtraction along row"]
+    Param_2("pnum = 2") -- in_2 --> OP_2
+    OP_2 -- out --> MR_3[("fig_07_15_25_002_polyback2, 1x1 Figure")]
+    MR_3 -- in_1 --> OP_3["fourier transform"]
+    Param_3("pnum = 3") -- in_2 --> OP_3
+    OP_3 -- out --> MR_4[("fig_07_15_25_002_FT, 1x1 Figure")]
+    MR_4 -- in_1 --> OP_4["extract linecut"]
+    Param_4("lincut param = [1,1,-1,176,246,176,211]") -- in_2 --> OP_4
+    OP_4 -- out --> MR_5[("fig_07_15_25_002_Linecut, 1x1 Figure")]
+    MR_1@{ shape: cylinder}</textarea>
     </div>
     <div class="dragbar" id="dragbar"></div>
     <div class="right">
@@ -245,4 +254,3 @@ flowchart TD
   </script>
 </body>
 </html>
-

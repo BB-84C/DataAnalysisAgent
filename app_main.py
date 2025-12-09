@@ -15,7 +15,7 @@ st.set_page_config(layout="wide")
 st.title("Data Analysis Agent")
 
 # Top area: flow editor + control + chat
-top_left, top_right = st.columns([3, 1])
+top_left, top_right = st.columns([2, 1])
 
 with top_left:
     render_flow_ui()
